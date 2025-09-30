@@ -3,10 +3,11 @@ Created on Sep 13, 2018
 
 @author: Andrei I Volkov
 '''
-
 import sys, os, json, subprocess, time, datetime
 import threading
 from Tkinter import *
+import tkFont
+import ttk
 import tkMessageBox
 from ScrolledText import ScrolledText
 import tkFileDialog
@@ -15,7 +16,6 @@ import matconvnet_patch
 from reshape_config import *
 from reshape_csv import ReshapeCsv
 from reshape_feature import ReshapeCellFeatureManager
-
 import reshape_version
 
 APP_NAME = reshape_version.RESHAPE_APP_NAME
@@ -202,6 +202,7 @@ class FijiProc(object):
         try:
             ts_start = datetime.datetime.now()
             fijip = self.gen_fiji_param()
+
             tilep = {'unit_pix':1, 'unit_real':1, 'unit_conv':0}
             params = dict(self.cur_params)
             if params.get('unit_conv') == 'Yes':
@@ -218,10 +219,12 @@ class FijiProc(object):
                 ln = ln.strip()
                 print 'FIJI:', ln
                 st = self.parse_status(ln)
+
                 if st is None: continue
                 ts, what, pathname = st
                 if what == 'Reading':
                     curFile = ProcessedImage(pathname, ts)
+
                     self.processed.append(curFile)
                     fn = os.path.basename(pathname)
                     self.update_status('%s' % (fn,))
@@ -279,7 +282,7 @@ class FijiProc(object):
 #                  'verbose': 1,
 #                  'EnableImreadJpeg': True,
 #                  'cudaMethod': 'mex',
-#                  'enableGpu': True,
+#                  'enableGpu': False,
 #                  'cudaRoot': None},
 #          'matlab_ver': None,
 #          'REShAPE': 'REShAPE_Auto_0.0.1.ijm',
@@ -361,7 +364,7 @@ class MatlabSegmentation(object):
             'tilepad': self.parent.tilepad,
             'srcDir': self.parent.srcDir,
             'tgtDir': self.parent.tgtDir,
-            'useGpu': self.parent.useGpu == 'Yes',
+            'useGpu': False,
             'iscale': INTERNAL_SCALE_MAP.get(self.parent.internalScale, 1.),
             'arti_filter': ARTI_FILTER_MAP.get(self.parent.artiFilter, 0.),
             'cziOptions': self.parent.cziOptions,
@@ -591,6 +594,15 @@ class ReshapeCtlMainWindow(object):
         #
         self.window = window  = Tk()
 
+        # -- Added by Toot - larger font
+        default_font = tkFont.nametofont("TkDefaultFont")
+        default_font.configure(size=12)
+
+        text_font = tkFont.nametofont("TkTextFont")
+        text_font.configure(size=12)
+
+        # --------------
+
 #         screen_width = window.winfo_screenwidth()
 #         screen_height = window.winfo_screenheight()
 #         geom = '%2.0fx%2.0f' % (screen_width*0.55, screen_height*0.5)
@@ -598,9 +610,9 @@ class ReshapeCtlMainWindow(object):
         
         window.title(APP_NAME+' version '+APP_VERSION)
         
-        self.frame = frame = Frame(window, relief=RAISED, borderwidth=1)
+        self.frame = frame = Frame(window, relief=RAISED, borderwidth=1,  padx=15, pady=15)
         frame.pack(fill=BOTH, expand=True)
-        
+
 # GroupBox - input/output folders
         self.lfdir = lfdir = LabelFrame(frame, text="Directories")
         lfdir.grid(column=0, row=0, columnspan=3)
@@ -985,6 +997,7 @@ class ReshapeCtlMainWindow(object):
             self.fiji.set_tiled_images(self.matl.outputs)
             self.fiji.run()
             rc = self.fiji.rc
+            # add_ids_to_images(self.tgtDir)
         self.matlabButton.configure(state=NORMAL)
         elapsed = datetime.datetime.now() - start_ts
         self.statusText.insert(END, '\nDONE in '+str(elapsed)+'.\n')
@@ -993,6 +1006,13 @@ class ReshapeCtlMainWindow(object):
         print 'Done (%d).' % (rc,)
         if self.shutBoxVar.get() != 0:
             self.autoShutDown()
+
+        # -------- Added by Toot - open results dir after processing ------
+
+        os.startfile(self.tgtDir)
+        # ------------------------------------------------------------------
+
+
         return rc
     
     def autoShutDown(self):

@@ -51,7 +51,7 @@ function [bitmask] = ArtiMask(I,cutoff)
         counts(i) = 0;
     end
     if pixcount < minarea
-        % Empty image, don't mask out anything
+        % Empty image, dont mask out anything
         bitmask = zeros(size(I,1), size(I,2), 'logical');
         return;
     end

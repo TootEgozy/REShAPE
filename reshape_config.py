@@ -176,6 +176,7 @@ def _win_findkits(hnames):
     return ranked[0][:-1] if ranked else None
 
 class ReshapeConfig(object):
+
     def __init__(self):
         self.osname, self.osdist, self.osmajver = get_os_info()
         #
@@ -183,7 +184,7 @@ class ReshapeConfig(object):
         self.matlab_options = []
         self.backenv = {}
         self.setup = {}
-        #
+        #        
         if self.osname == 'windows':
             self.find_matlab = self._find_matlab_windows
             self.find_cuda = self._find_cuda_windows
@@ -304,7 +305,7 @@ class ReshapeConfig(object):
             cfg['mex'] = {}
             return
         cfg['mex'] = {
-                'enableGpu': True,
+                'enableGpu': False,
                 'enableCudnn': False,
                 'EnableImreadJpeg': True,
                 'cudaMethod': 'mex',
@@ -320,10 +321,10 @@ class ReshapeConfig(object):
             cfg['mex'] = {}
             return
         cfg['mex'] = mex = {
-                'enableGpu': True,
+                'enableGpu': False,
                 'enableCudnn': False,
                 'EnableImreadJpeg': True,
-                'cudaMethod': 'nvcc',
+                'cudaMethod': 'mex',
                 'cudaRoot': cuda,
                 'verbose': 1,
             }
